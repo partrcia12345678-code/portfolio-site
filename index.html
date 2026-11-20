@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>陈馨 · 产品经理作品集</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: #1a1a1f; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; color: #eaeaea; overflow: hidden; }
+
+  .stage { position: relative; height: 100%; display: flex; align-items: center; justify-content: center; }
+  .slide-img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; box-shadow: 0 8px 40px rgba(0,0,0,.5); user-select: none; -webkit-user-drag: none; display: block; }
+
+  .nav-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 52px; height: 52px; border-radius: 50%; border: none; outline: none;
+    background: rgba(255,255,255,.12); color: #fff; font-size: 24px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .2s; backdrop-filter: blur(4px);
+  }
+  .nav-btn:hover { background: rgba(255,255,255,.25); }
+  .nav-btn.prev { left: 18px; }
+  .nav-btn.next { right: 18px; }
+  .nav-btn:disabled { opacity: .25; cursor: default; }
+
+  .pager {
+    position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 6px; align-items: center;
+    background: rgba(0,0,0,.45); border-radius: 20px; padding: 6px 14px;
+    font-size: 14px; letter-spacing: 1px; backdrop-filter: blur(4px);
+  }
+  .pager .cur { font-weight: 700; color: #7ab8ff; font-size: 16px; }
+  .pager .sep { opacity: .4; }
+
+  .toolbar {
+    position: absolute; top: 16px; right: 16px; display: flex; gap: 10px; z-index: 10;
+  }
+  .tool-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.12); color: #fff; text-decoration: none;
+    padding: 8px 14px; border-radius: 8px; font-size: 13px;
+    transition: background .2s; backdrop-filter: blur(4px);
+  }
+  .tool-btn:hover { background: rgba(255,255,255,.25); }
+
+  .title-bar {
+    position: absolute; top: 16px; left: 18px; z-index: 10;
+    font-size: 14px; opacity: .75; letter-spacing: .5px;
+  }
+
+  .loading {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: #9aa; letter-spacing: 2px;
+  }
+
+  @media (max-width: 640px) {
+    .nav-btn { width: 42px; height: 42px; font-size: 19px; }
+    .nav-btn.prev { left: 8px; }
+    .nav-btn.next { right: 8px; }
+    .tool-btn { padding: 6px 10px; font-size: 12px; }
+    .toolbar { top: 10px; right: 10px; gap: 8px; }
+    .title-bar { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="title-bar">陈馨 · 产品经理作品集</div>
+  <div class="toolbar">
+    <a class="tool-btn" href="portfolio.pdf" download="产品经理作品集_陈馨.pdf">⬇ PDF</a>
+    <a class="tool-btn" href="portfolio.pptx" download="产品经理作品集_陈馨.pptx">⬇ PPT 源文件</a>
+  </div>
+  <div class="loading" id="loading">加载中…</div>
+  <img class="slide-img" id="slide" alt="slide">
+  <button class="nav-btn prev" id="btnPrev" aria-label="上一页">‹</button>
+  <button class="nav-btn next" id="btnRight" aria-label="下一页">›</button>
+  <div class="pager"><span class="cur" id="cur">1</span><span class="sep">/</span><span id="total">?</span></div>
+</div>
+
+<script src="slides.js"></script>
+<script>
+(function () {
+  var total = (typeof SLIDES !== 'undefined' && SLIDES > 0) ? SLIDES : 0;
+  var cur = 0;
+  var img = document.getElementById('slide');
+  var btnPrev = document.getElementById('btnPrev');
+  var btnNext = document.getElementById('btnRight');
+  var elCur = document.getElementById('cur');
+  var elTotal = document.getElementById('total');
+  var loadingEl = document.getElementById('loading');
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function src(i) { return 'slides/slide-' + pad(i + 1) + '.jpg'; }
+
+  function render() {
+    img.style.display = 'none';
+    loadingEl.style.display = 'flex';
+    img.src = src(cur);
+    elCur.textContent = cur + 1;
+    btnPrev.disabled = cur === 0;
+    btnNext.disabled = cur === total - 1;
+    // 预加载相邻页
+    if (cur + 1 < total) { var p1 = new Image(); p1.src = src(cur + 1); }
+    if (cur > 0) { var p2 = new Image(); p2.src = src(cur - 1); }
+  }
+
+  function go(n) {
+    if (total === 0) return;
+    n = Math.max(0, Math.min(total - 1, n));
+    if (n === cur) return;
+    cur = n;
+    render();
+  }
+
+  img.onload = function () {
+    loadingEl.style.display = 'none';
+    img.style.display = 'block';
+  };
+  img.onerror = function () {
+    loadingEl.textContent = '幻灯片图片缺失';
+  };
+
+  btnPrev.addEventListener('click', function () { go(cur - 1); });
+  btnNext.addEventListener('click', function () { go(cur + 1); });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') go(cur - 1);
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') go(cur + 1);
+    if (e.key === 'Home') go(0);
+    if (e.key === 'End') go(total - 1);
+  });
+
+  // 触摸滑动
+  var touchX = null;
+  document.addEventListener('touchstart', function (e) { touchX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (touchX === null) return;
+    var dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 40) { dx < 0 ? go(cur + 1) : go(cur - 1); }
+    touchX = null;
+  }, { passive: true });
+
+  // 若 slides.js 不可用，逐张探测直到 404
+  if (!total) {
+    var probe = new Image();
+    (function discover(i) {
+      probe.onload = function () { total = i; discover(i + 1); };
+      probe.onerror = function () {
+        if (i > 1) { total = i - 1; elTotal.textContent = total; render(); }
+        else { loadingEl.textContent = '幻灯片未生成'; }
+      };
+      probe.src = src(i - 1);
+    })(1);
+  }
+
+  elTotal.textContent = total || '?';
+  if (total) render();
+})();
+</script>
+</body>
+</html>
